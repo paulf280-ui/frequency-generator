@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Frequency Generator</title>
+  <meta name="description" content="A simple tone generator for exploring healing frequencies." />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #1c1c1c;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    select, input[type="range"] {
+      width: 100%;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #0ff;
+      color: #000;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .presets {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .preset-btn {
+      background-color: #333;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      color: #0ff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Frequency Generator</h1>
+    <p>Explore tones from your frequency book</p>
+
+    <label for="waveform">Waveform:</label>
+    <select id="waveform">
+      <option value="sine">Sine</option>
+      <option value="square">Square</option>
+      <option value="sawtooth">Sawtooth</option>
+      <option value="triangle">Triangle</option>
+    </select>
+
+    <label for="frequency">Frequency: <span id="freqValue">639</span> Hz</label>
+    <input type="range" id="frequency" min="20" max="20000" value="639" />
+
+    <label for="volume">Volume: <span id="volValue">0.5</span></label>
+    <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" />
+
+    <button id="playButton">Play</button>
+
+    <div class="presets">
+      <button class="preset-btn" data-freq="174">174 Hz</button>
+      <button class="preset-btn" data-freq="285">285 Hz</button>
+      <button class="preset-btn" data-freq="396">396 Hz</button>
+      <button class="preset-btn" data-freq="417">417 Hz</button>
+      <button class="preset-btn" data-freq="432">432 Hz</button>
+      <button class="preset-btn" data-freq="528">528 Hz</button>
+      <button class="preset-btn" data-freq="639">639 Hz</button>
+      <button class="preset-btn" data-freq="741">741 Hz</button>
+      <button class="preset-btn" data-freq="852">852 Hz</button>
+      <button class="preset-btn" data-freq="963">963 Hz</button>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx, oscillator, gainNode;
+    let isPlaying = false;
+
+    const playButton = document.getElementById('playButton');
+    const freqSlider = document.getElementById('frequency');
+    const volSlider = document.getElementById('volume');
+    const freqValue = document.getElementById('freqValue');
+    const volValue = document.getElementById('volValue');
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode = audioCtx.createGain();
+        gainNode.connect(audioCtx.destination);
+      }
+    }
+
+    function startTone() {
+      initAudio();
+      oscillator = audioCtx.createOscillator();
+      oscillator.type = document.getElementById('waveform').value;
+      oscillator.frequency.value = freqSlider.value;
+      gainNode.gain.value = volSlider.value;
+      oscillator.connect(gainNode);
+      oscillator.start();
+      isPlaying = true;
+      playButton.textContent = 'Stop';
+    }
+
+    function stopTone() {
+      if (oscillator) {
+        oscillator.stop();
+        oscillator.disconnect();
+        oscillator = null;
+      }
+      isPlaying = false;
+      playButton.textContent = 'Play';
+    }
+
+    playButton.addEventListener('click', () => {
+      if (isPlaying) {
+        stopTone();
+      } else {
+        startTone();
+      }
+    });
+
+    freqSlider.addEventListener('input', () => {
+      freqValue.textContent = freqSlider.value;
+      if (oscillator) oscillator.frequency.value = freqSlider.value;
+    });
+
+    volSlider.addEventListener('input', () => {
+      volValue.textContent = volSlider.value;
+      if (gainNode) gainNode.gain.value = volSlider.value;
+    });
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        freqSlider.value = btn.dataset.freq;
+        freqValue.textContent = btn.dataset.freq;
+        if (oscillator) oscillator.frequency.value = btn.dataset.freq;
+      });
+    });
+  </script>
+</body>
+</html>
